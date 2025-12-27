@@ -67,7 +67,7 @@ publish
 
 Builds your Godot game using Nix (for CI validation).
 
-**`build/action.yml`:**
+**`.github/workflows/build.yml`:**
 
 ```yaml
 name: Build
@@ -93,7 +93,7 @@ jobs:
 
 Builds and publishes your game to itch.io.
 
-**`publish/action.yml`:**
+**`.github/workflows/publish.yml`:**
 
 ```yaml
 name: Publish to itch.io
