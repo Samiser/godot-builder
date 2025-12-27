@@ -1,8 +1,8 @@
 # Godot Builder
 
-A Nix library for building and publishing Godot web games.
+A Nix library and GitHub Actions for building and publishing Godot web games.
 
-## Usage
+## Nix Library
 
 Add to your game's `flake.nix`:
 
@@ -39,7 +39,7 @@ Add to your game's `flake.nix`:
 }
 ```
 
-## Build and publish
+### Build and publish
 
 ```bash
 # Build the game
@@ -53,10 +53,75 @@ export BUTLER_API_KEY="your-key"
 publish
 ```
 
-## Options
+### Options
 
 - `pname`: Package name
 - `version`: Version string
 - `src`: Source directory (usually `./`)
 - `exportPreset`: Godot export preset name (default: `"main"`)
 - `itchTarget`: itch.io target like `"username/game"` (optional)
+
+## GitHub Actions
+
+### Build Action
+
+Builds your Godot game using Nix (for CI validation).
+
+**`build/action.yml`:**
+
+```yaml
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: samiser/godot-builder/build@main
+```
+
+**Inputs:**
+
+- `flake-target`: Nix flake target (default: `.#default`)
+
+### Publish Action
+
+Builds and publishes your game to itch.io.
+
+**`publish/action.yml`:**
+
+```yaml
+name: Publish to itch.io
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: butler # Optional: if using GitHub Environments
+    steps:
+      - uses: actions/checkout@v4
+      - uses: samiser/godot-builder/publish@main
+        with:
+          itch-target: username/my-game:html
+          butler-api-key: ${{ secrets.BUTLER_API_KEY }}
+```
+
+**Inputs:**
+
+- `itch-target`: itch.io target in format `username/game:channel` (required)
+- `butler-api-key`: Your itch.io API key (required, **use secrets**)
+- `flake-target`: Nix flake target (default: `.#default`)
+
+**Setup:**
+
+1. Get your API key from https://itch.io/user/settings/api-keys
+2. Add it as a
+   [GitHub repository secret](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository)
+   named `BUTLER_API_KEY`
