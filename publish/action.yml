@@ -1,0 +1,29 @@
+name: "Publish to itch.io"
+description: "Build a Godot game using Nix and publish to itch.io"
+inputs:
+  itch-target:
+    description: "itch.io target (username/game:channel)"
+    required: true
+  butler-api-key:
+    description: "Butler API key"
+    required: true
+  flake-target:
+    description: "Nix flake target"
+    default: ".#default"
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - uses: DeterminateSystems/nix-installer-action@v14
+    - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+    - name: Build game
+      shell: bash
+      run: nix build ${{ inputs.flake-target }}
+
+    - name: Publish to itch.io
+      shell: bash
+      env:
+        BUTLER_API_KEY: ${{ inputs.butler-api-key }}
+      run: |
+        BUTLER_API_KEY="$BUTLER_API_KEY" nix run nixpkgs#butler -- push result/game.zip ${{ inputs.itch-target }}
